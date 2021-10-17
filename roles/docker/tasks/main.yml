@@ -1,0 +1,80 @@
+---
+# tasks file for docker
+- name: Swap inactive
+  command: swapoff -a 
+
+- name: Add sysctl conf
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/k8s.conf
+    state: present
+    sysctl_set: no
+    reload: no
+  with_items:
+    - name: net.bridge.bridge-nf-call-ip6tables
+      value: "1"
+    - name: net.bridge.bridge-nf-call-iptables
+      value: "1"
+
+- name: Installing Prerequisites for Kubernetes
+  apt: 
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - iptables
+      - arptables
+      - ebtables
+    state: present  
+
+- name: Switch Legacy iptables
+  alternatives:
+    name: "{{ item.name }}"
+    path: "{{ item.path }}"
+  with_items:
+    - name: iptables
+      path: /usr/sbin/iptables-legacy
+    - name: arptables
+      path: /usr/sbin/arptables-legacy
+    - name: ebtables
+      path: /usr/sbin/ebtables-legacy
+
+- name: update apt
+  apt:
+    update_cache: yes
+
+- name: Add Docker's official GPG key to apt
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    keyring: /usr/share/keyrings/docker-archive-keyring.gpg
+    state: present
+
+- name: Add apt repository
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu focal stable"
+
+- name: Installing Docker
+  apt: 
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+
+- name: Prepare default daemon configuration
+  copy:
+    src: ../files/daemon.json
+    dest: /etc/docker/daemon.json
+
+- name: Force systemd to reread configs
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Enable service docker, and enable persistently
+  ansible.builtin.systemd: 
+    name: docker
+    state: restarted
+    enabled: yes

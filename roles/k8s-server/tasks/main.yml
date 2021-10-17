@@ -1,0 +1,19 @@
+---
+# tasks file for k8s-server
+- name: Add Kubernetes official GPG key to apt
+  ansible.builtin.apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add apt repository for kubernetes
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+
+- name: Installing Kubernetes
+  apt: 
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present

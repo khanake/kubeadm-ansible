@@ -1,0 +1,10 @@
+---
+# file: cp.yml
+- hosts: cp
+  gather_facts: no
+  become: yes
+  roles:
+    - role: docker
+      tags: docker
+    - role: k8s-server
+      tags: k8ss

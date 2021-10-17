@@ -1,0 +1,6 @@
+[cp]
+cp01  ansible_host=subaru-001-k8s-master
+
+[nd]
+nd01  ansible_host=subaru-002-k8s-node-1
+nd02  ansible_host=subaru-003-k8s-node-2
