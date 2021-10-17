@@ -28,6 +28,7 @@
       - iptables
       - arptables
       - ebtables
+      - ipset
     state: present  
 
 - name: Switch Legacy iptables
